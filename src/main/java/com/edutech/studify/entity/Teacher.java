@@ -73,7 +73,6 @@ public class Teacher extends BaseEntity {
     @OneToMany(mappedBy = "teacher", cascade = CascadeType.ALL)
     private List<Course> courses = new ArrayList<>();
 
-    // Helper method to get full name
     @Transient
     public String getFullName() {
         return firstName + " " + lastName;

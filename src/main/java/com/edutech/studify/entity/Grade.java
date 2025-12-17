@@ -54,16 +54,15 @@ public class Grade extends BaseEntity {
     // Grade point calculation based on letter grade
     private BigDecimal calculateGradePoint(String grade) {
         return switch (grade.toUpperCase()) {
-            case "A" -> new BigDecimal("4.0");
-            case "A-" -> new BigDecimal("3.7");
-            case "B+" -> new BigDecimal("3.3");
+            case "A+" -> new BigDecimal("4.0");
+            case "A" -> new BigDecimal("3.7");
+            case "A-" -> new BigDecimal("3.5");
+            case "B+" -> new BigDecimal("3.25");
             case "B" -> new BigDecimal("3.0");
-            case "B-" -> new BigDecimal("2.7");
-            case "C+" -> new BigDecimal("2.3");
-            case "C" -> new BigDecimal("2.0");
-            case "C-" -> new BigDecimal("1.7");
-            case "D+" -> new BigDecimal("1.3");
-            case "D" -> new BigDecimal("1.0");
+            case "B-" -> new BigDecimal("2.75");
+            case "C+" -> new BigDecimal("2.5");
+            case "C" -> new BigDecimal("2.25");
+            case "D" -> new BigDecimal("2.00");
             case "F" -> new BigDecimal("0.0");
             default -> new BigDecimal("0.0");
         };
