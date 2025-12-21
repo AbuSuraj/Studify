@@ -1,4 +1,4 @@
-package com.edutech.studify.dto;
+package com.edutech.studify.dto.response;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
