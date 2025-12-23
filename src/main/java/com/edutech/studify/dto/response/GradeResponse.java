@@ -1,5 +1,6 @@
 package com.edutech.studify.dto.response;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -8,6 +9,7 @@ import lombok.NoArgsConstructor;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Data
 @NoArgsConstructor
@@ -45,5 +47,32 @@ public class GradeResponse {
         private String courseCode;
         private String name;
         private Integer credits;
+    }
+
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @Builder
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    public static class ErrorResponse {
+
+        @Builder.Default
+        private LocalDateTime timestamp = LocalDateTime.now();
+
+        private int status;
+        private String error;
+        private String message;
+        private String path;
+        private List<ValidationError> errors;
+
+        @Data
+        @Builder
+        @NoArgsConstructor
+        @AllArgsConstructor
+        public static class ValidationError {
+            private String field;
+            private String message;
+            private Object rejectedValue;
+        }
     }
 }
