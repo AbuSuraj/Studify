@@ -1,5 +1,6 @@
 package com.edutech.studify.controller;
 
+import com.edutech.studify.dto.request.ChangePasswordRequest;
 import com.edutech.studify.dto.request.LoginRequest;
 import com.edutech.studify.dto.request.RegisterRequest;
 import com.edutech.studify.dto.response.ApiResponse;
@@ -63,5 +64,33 @@ public class AuthController {
         };
 
         return ResponseEntity.ok(ApiResponse.success(userInfo, "User retrieved successfully"));
+    }
+
+    /**
+     * Change password
+     * PUT /api/auth/change-password
+     */
+    @PutMapping("/change-password")
+    public ResponseEntity<ApiResponse<String>> changePassword(
+            @Valid @RequestBody ChangePasswordRequest request) {
+
+        authService.changePassword(request);
+
+        return ResponseEntity.ok(ApiResponse.success(null, "Password changed successfully"));
+    }
+
+    /**
+     * Logout (client-side token removal)
+     * POST /api/auth/logout
+     * Note: Since we're using stateless JWT, logout is handled client-side
+     * This endpoint is for logging purposes or future token blacklisting
+     */
+    @PostMapping("/logout")
+    public ResponseEntity<ApiResponse<String>> logout() {
+        // For stateless JWT, the client should remove the token
+        // This endpoint can be used for logging or future token blacklisting implementation
+
+        return ResponseEntity.ok(ApiResponse.success(null,
+                "Logout successful. Please remove the token from client."));
     }
 }

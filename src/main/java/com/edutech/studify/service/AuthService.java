@@ -1,11 +1,14 @@
 package com.edutech.studify.service;
 
 
+import com.edutech.studify.dto.request.ChangePasswordRequest;
 import com.edutech.studify.dto.request.LoginRequest;
 import com.edutech.studify.dto.request.RegisterRequest;
 import com.edutech.studify.dto.response.AuthResponse;
+import com.edutech.studify.dto.response.UserResponse;
 import com.edutech.studify.entity.Role;
 import com.edutech.studify.entity.User;
+import com.edutech.studify.exception.BadRequestException;
 import com.edutech.studify.exception.DuplicateResourceException;
 import com.edutech.studify.exception.InvalidCredentialsException;
 import com.edutech.studify.repository.UserRepository;
@@ -122,5 +125,69 @@ public class AuthService {
     public boolean hasRole(Role role) {
         User currentUser = getCurrentUser();
         return currentUser.getRole() == role;
+    }
+
+    /**
+     * Change password
+     */
+    @Transactional
+    public void changePassword(ChangePasswordRequest request) {
+        // Validate passwords match
+        if (!request.getNewPassword().equals(request.getConfirmPassword())) {
+            throw new BadRequestException("New password and confirm password do not match");
+        }
+
+        // Get current user
+        User user = getCurrentUser();
+
+        // Verify current password
+        if (!passwordEncoder.matches(request.getCurrentPassword(), user.getPassword())) {
+            throw new InvalidCredentialsException("Current password is incorrect");
+        }
+
+        // Update password
+        user.setPassword(passwordEncoder.encode(request.getNewPassword()));
+        userRepository.save(user);
+    }
+
+    /**
+     * Get user profile with complete information
+     */
+    @Transactional(readOnly = true)
+    public UserResponse getUserProfile() {
+        User user = getCurrentUser();
+
+        UserResponse.UserResponseBuilder builder = UserResponse.builder()
+                .id(user.getId())
+                .username(user.getUsername())
+                .email(user.getEmail())
+                .role(user.getRole())
+                .isActive(user.getIsActive())
+                .createdAt(user.getCreatedAt())
+                .lastModifiedAt(user.getLastModifiedAt());
+
+        // Add student info if user is a student
+        if (user.getStudent() != null) {
+            builder.studentInfo(UserResponse.StudentInfo.builder()
+                    .studentId(user.getStudent().getId())
+                    .fullName(user.getStudent().getFullName())
+                    .department(user.getStudent().getDepartment() != null ?
+                            user.getStudent().getDepartment().getName() : null)
+                    .status(user.getStudent().getStatus().name())
+                    .build());
+        }
+
+        // Add teacher info if user is a teacher
+        if (user.getTeacher() != null) {
+            builder.teacherInfo(UserResponse.TeacherInfo.builder()
+                    .teacherId(user.getTeacher().getId())
+                    .fullName(user.getTeacher().getFullName())
+                    .department(user.getTeacher().getDepartment() != null ?
+                            user.getTeacher().getDepartment().getName() : null)
+                    .specialization(user.getTeacher().getSpecialization())
+                    .build());
+        }
+
+        return builder.build();
     }
 }
