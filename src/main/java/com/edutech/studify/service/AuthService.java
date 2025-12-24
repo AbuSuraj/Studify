@@ -163,8 +163,7 @@ public class AuthService {
                 .email(user.getEmail())
                 .role(user.getRole())
                 .isActive(user.getIsActive())
-                .createdAt(user.getCreatedAt())
-                .lastModifiedAt(user.getLastModifiedAt());
+                .createdAt(user.getCreatedAt()) ;
 
         // Add student info if user is a student
         if (user.getStudent() != null) {
