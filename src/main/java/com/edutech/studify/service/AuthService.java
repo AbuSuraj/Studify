@@ -58,7 +58,7 @@ public class AuthService {
         userRepository.save(user);
 
         // Generate JWT token
-        String token = jwtUtils.generateTokenFromUsername(user.getUsername());
+        String token = jwtUtils.generateTokenFromUsername(user.getEmail());
 
         return AuthResponse.builder()
                 .token(token)
@@ -79,7 +79,7 @@ public class AuthService {
             // Authenticate user
             Authentication authentication = authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(
-                            request.getUsername(),
+                            request.getEmail(),
                             request.getPassword()
                     )
             );
@@ -90,8 +90,8 @@ public class AuthService {
             String token = jwtUtils.generateToken(authentication);
 
             // Get user details
-            User user = userRepository.findByUsername(request.getUsername())
-                    .orElseThrow(() -> new InvalidCredentialsException("Invalid username or password"));
+            User user = userRepository.findByEmail(request.getPassword())
+                    .orElseThrow(() -> new InvalidCredentialsException("Invalid email or password"));
 
             return AuthResponse.builder()
                     .token(token)
@@ -104,7 +104,7 @@ public class AuthService {
                     .build();
 
         } catch (Exception e) {
-            throw new InvalidCredentialsException("Invalid username or password");
+            throw new InvalidCredentialsException("Invalid email or password");
         }
     }
 
@@ -113,9 +113,9 @@ public class AuthService {
      */
     public User getCurrentUser() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String username = authentication.getName();
+        String email = authentication.getName();
 
-        return userRepository.findByUsername(username)
+        return userRepository.findByEmail(email)
                 .orElseThrow(() -> new InvalidCredentialsException("User not found"));
     }
 
