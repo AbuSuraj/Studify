@@ -1,7 +1,6 @@
 package com.edutech.studify.security;
 
 
-
 import com.edutech.studify.entity.User;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -53,6 +52,10 @@ public class UserDetailsImpl implements UserDetails {
 
     @Override
     public String getUsername() {
+        return email;
+    }
+
+    public String getActualUsername() {
         return username;
     }
 
