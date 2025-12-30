@@ -90,7 +90,7 @@ public class AuthService {
             String token = jwtUtils.generateToken(authentication);
 
             // Get user details
-            User user = userRepository.findByEmail(request.getPassword())
+            User user = userRepository.findByEmail(request.getEmail())
                     .orElseThrow(() -> new InvalidCredentialsException("Invalid email or password"));
 
             return AuthResponse.builder()
