@@ -31,7 +31,7 @@ public class SecurityUtils {
 
         String username = authentication.getName();
 
-        return userRepository.findByUsername(username)
+        return userRepository.findByEmail(username)
                 .orElseThrow(() -> new UnauthorizedException("User not found"));
     }
 
