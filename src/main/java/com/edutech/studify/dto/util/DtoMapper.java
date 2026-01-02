@@ -51,12 +51,18 @@ public class DtoMapper {
                 .fullName(teacher.getFullName())
                 .email(teacher.getEmail())
                 .phone(teacher.getPhone())
-                .department(teacher.getDepartment() != null ?
-                        toTeacherDepartmentSummary(teacher.getDepartment()) : null)
+                .department(
+                        teacher.getDepartment() == null ? null :
+                                toTeacherDepartmentSummary(teacher.getDepartment())
+                )
                 .specialization(teacher.getSpecialization())
-                .totalCourses(teacher.getCourses().size())
+                .totalCourses(
+                        teacher.getCourses() == null ? 0 : teacher.getCourses().size()
+                )
                 .createdAt(teacher.getCreatedAt())
                 .createdBy(teacher.getCreatedBy())
+                .lastModifiedAt(teacher.getUpdatedAt())
+                .lastModifiedBy(teacher.getUpdatedBy())
                 .build();
     }
 
@@ -83,6 +89,8 @@ public class DtoMapper {
                 .totalCourses(courseCount)
                 .createdAt(department.getCreatedAt())
                 .createdBy(department.getCreatedBy())
+                .lastModifiedAt(department.getUpdatedAt())
+                .lastModifiedBy(department.getUpdatedBy())
                 .build();
     }
 
@@ -100,14 +108,21 @@ public class DtoMapper {
                 .enrolledCount(course.getEnrolledCount())
                 .availableSeats(course.getAvailableSeats())
                 .isFull(course.isFull())
-                .department(toCourseDepartmentSummary(course.getDepartment()))
-                .teacher(course.getTeacher() != null ?
-                        toTeacherSummary(course.getTeacher()) : null)
+                .department(
+                        course.getDepartment() == null ? null :
+                                toCourseDepartmentSummary(course.getDepartment())
+                )
+                .teacher(
+                        course.getTeacher() == null ? null :
+                                toTeacherSummary(course.getTeacher())
+                )
                 .createdAt(course.getCreatedAt())
                 .createdBy(course.getCreatedBy())
-
+                .lastModifiedAt(course.getUpdatedAt())
+                .lastModifiedBy(course.getUpdatedBy())
                 .build();
     }
+
 
     private CourseResponse.DepartmentSummary toCourseDepartmentSummary(Department department) {
         return CourseResponse.DepartmentSummary.builder()
