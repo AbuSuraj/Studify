@@ -1,6 +1,5 @@
 package com.edutech.studify.entity;
 
-
 import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
 import lombok.*;
@@ -65,11 +64,15 @@ public class Course extends BaseEntity {
 
     // Relationships
     @OneToMany(mappedBy = "course", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default  // This tells Lombok to use the default value in builder
     private List<Enrollment> enrollments = new ArrayList<>();
 
     // Helper method to get enrolled student count
     @Transient
     public int getEnrolledCount() {
+        if (enrollments == null) {
+            return 0;
+        }
         return (int) enrollments.stream()
                 .filter(e -> e.getStatus() == EnrollmentStatus.ACTIVE)
                 .count();
