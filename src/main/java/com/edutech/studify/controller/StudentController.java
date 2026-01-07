@@ -30,7 +30,7 @@ import org.springframework.data.web.PageableDefault;
 
 import org.springframework.web.bind.annotation.*;
 @RestController
-@RequestMapping("/api/students")
+@RequestMapping("/api/v1/students")
 @RequiredArgsConstructor
 @Tag(name = "Students", description = "APIs for managing students")
 @SecurityRequirement(name = "bearerAuth")

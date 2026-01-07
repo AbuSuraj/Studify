@@ -20,7 +20,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/auth")
+@RequestMapping("/api/auth/v1")
 @RequiredArgsConstructor
 @Tag(name = "Authentication", description = "Authentication and user management APIs")
 public class AuthController {
