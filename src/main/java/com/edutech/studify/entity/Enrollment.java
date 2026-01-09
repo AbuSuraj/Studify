@@ -41,6 +41,7 @@ public class Enrollment extends BaseEntity {
 
     @Enumerated(EnumType.STRING)
     @Column(length = 20)
+    @Builder.Default
     private EnrollmentStatus status = EnrollmentStatus.ACTIVE;
 
     // Relationships
@@ -48,12 +49,13 @@ public class Enrollment extends BaseEntity {
     private Grade grade;
 
     @OneToMany(mappedBy = "enrollment", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
     private List<Attendance> attendanceRecords = new ArrayList<>();
 
     // Helper method to calculate attendance percentage
     @Transient
     public double getAttendancePercentage() {
-        if (attendanceRecords.isEmpty()) {
+        if (attendanceRecords == null || attendanceRecords.isEmpty()) {
             return 0.0;
         }
         long presentCount = attendanceRecords.stream()
