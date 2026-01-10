@@ -13,6 +13,7 @@ import com.edutech.studify.util.SecurityUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -128,24 +129,29 @@ public class GradeService {
 
         // Verify access for students
         if (securityUtils.isStudent()) {
-            Enrollment enrollment = enrollmentRepository.findByStudentId(studentId).stream()
-                    .findFirst()
-                    .orElseThrow(() -> new ResourceNotFoundException("Student", "id", studentId));
-
-            if (!enrollment.getStudent().getUser().getId().equals(securityUtils.getCurrentUserId())) {
-                throw new BusinessException("You can only view your own grades");
+            List<Enrollment> enrollments = enrollmentRepository.findByStudentId(studentId);
+            if (!enrollments.isEmpty()) {
+                if (!enrollments.get(0).getStudent().getUser().getId().equals(securityUtils.getCurrentUserId())) {
+                    throw new BusinessException("You can only view your own grades");
+                }
             }
         }
 
-        Pageable pageable = PageRequest.of(page, size, Sort.by("gradedDate").descending());
-
         Page<Grade> gradePage;
+
         if (semester != null) {
-            gradePage = gradeRepository.findByStudentIdAndSemester(studentId, semester, pageable).map(grades -> {
-                // Convert List to Page manually
-                return (Grade) grades.get(0);
-            });
+            // Get list and convert to page manually
+            List<Grade> grades = gradeRepository.findByStudentIdAndSemester(studentId, semester);
+
+            // Apply pagination manually
+            Pageable pageable = PageRequest.of(page, size, Sort.by("gradedDate").descending());
+            int start = (int) pageable.getOffset();
+            int end = Math.min((start + pageable.getPageSize()), grades.size());
+
+            List<Grade> pageContent = grades.subList(start, end);
+            gradePage = new PageImpl<>(pageContent, pageable, grades.size());
         } else {
+            Pageable pageable = PageRequest.of(page, size, Sort.by("gradedDate").descending());
             gradePage = gradeRepository.findByStudentId(studentId, pageable);
         }
 
