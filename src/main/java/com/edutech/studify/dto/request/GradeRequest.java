@@ -21,8 +21,9 @@ public class GradeRequest {
     private Long enrollmentId;
 
     @NotBlank(message = "Grade is required")
-    @Pattern(regexp = "^(A|A-|B\\+|B|B-|C\\+|C|C-|D\\+|D|F)$",
-            message = "Grade must be valid (A, A-, B+, B, B-, C+, C, C-, D+, D, F)")
+    @Size(max = 5, message = "Grade must not exceed 5 characters")
+    @Pattern(regexp = "^(A\\+|A|A-|B\\+|B|B-|C\\+|C|D|F)$",
+            message = "Grade must be one of: A+, A, A-, B+, B, B-, C+, C, D, F")
     private String grade;
 
     @Size(max = 500, message = "Remarks must not exceed 500 characters")
