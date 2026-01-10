@@ -1,13 +1,11 @@
 package com.edutech.studify.service;
 
 import com.edutech.studify.dto.request.AttendanceRequest;
-import com.edutech.studify.dto.request.MarkAttendanceRequest;
 import com.edutech.studify.dto.response.AttendanceResponse;
 import com.edutech.studify.dto.response.AttendanceSummaryResponse;
 import com.edutech.studify.dto.util.DtoMapper;
 import com.edutech.studify.entity.*;
 import com.edutech.studify.exception.BusinessException;
-import com.edutech.studify.exception.DuplicateResourceException;
 import com.edutech.studify.exception.ResourceNotFoundException;
 import com.edutech.studify.repository.AttendanceRepository;
 import com.edutech.studify.repository.CourseRepository;
@@ -40,7 +38,7 @@ public class AttendanceService {
      * TEACHER can mark for their courses
      */
     @Transactional
-    public AttendanceSummaryResponse markAttendance(MarkAttendanceRequest request) {
+    public AttendanceSummaryResponse markAttendance(AttendanceRequest request) {
         log.info("Marking attendance for course ID: {} on date: {}",
                 request.getCourseId(), request.getDate());
 
@@ -70,7 +68,7 @@ public class AttendanceService {
                 .map(Enrollment::getId)
                 .collect(Collectors.toList());
 
-        for (AttendanceRequest record : request.getAttendanceRecords()) {
+        for (AttendanceRequest.AttendanceRecord record : request.getAttendanceRecords()) {
             if (!activeEnrollmentIds.contains(record.getEnrollmentId())) {
                 throw new BusinessException("Enrollment ID " + record.getEnrollmentId() +
                         " does not belong to this course or is not active");
@@ -81,7 +79,7 @@ public class AttendanceService {
         List<Attendance> attendanceList = new ArrayList<>();
         int present = 0, absent = 0, late = 0;
 
-        for (AttendanceRequest record : request.getAttendanceRecords()) {
+        for (AttendanceRequest.AttendanceRecord record : request.getAttendanceRecords()) {
             // Check if attendance already exists for this enrollment and date
             if (attendanceRepository.existsByEnrollmentIdAndDate(record.getEnrollmentId(), request.getDate())) {
                 // Update existing attendance
