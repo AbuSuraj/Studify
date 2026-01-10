@@ -1,6 +1,5 @@
 package com.edutech.studify.security;
 
-
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;

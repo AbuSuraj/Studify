@@ -1,6 +1,5 @@
 package com.edutech.studify.controller;
 
-
 import com.edutech.studify.dto.request.CreateCourseRequest;
 import com.edutech.studify.dto.request.UpdateCourseRequest;
 import com.edutech.studify.dto.response.ApiResponse;

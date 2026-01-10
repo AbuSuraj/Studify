@@ -1,6 +1,5 @@
 package com.edutech.studify.entity;
 
-
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
