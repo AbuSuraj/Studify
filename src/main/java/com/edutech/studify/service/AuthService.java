@@ -58,7 +58,11 @@ public class AuthService {
 
         // Generate JWT token
         String token = jwtUtils.generateTokenFromUsername(user.getEmail());
-
+        /**
+            *  Why generate token here?
+            * Immediate login after registration
+            * No extra login call needed
+         */
         return AuthResponse.builder()
                 .token(token)
                 .type("Bearer")
@@ -162,7 +166,7 @@ public class AuthService {
                 .email(user.getEmail())
                 .role(user.getRole())
                 .isActive(user.getIsActive())
-                .createdAt(user.getCreatedAt()) ;
+                .createdAt(user.getCreatedAt());
 
         // Add student info if user is a student
         if (user.getStudent() != null) {

@@ -15,7 +15,21 @@ import java.util.Collections;
 @NoArgsConstructor
 @AllArgsConstructor
 public class UserDetailsImpl implements UserDetails {
+/**
+ * Spring does NOT work with our User entity directly.
+ * “UserDetailsImpl is how Spring sees my user.”
+ * */
 
+/**
+ ** Why it exists
+ * Spring Security needs:
+ * -> username
+ * -> password
+ * -> authorities
+ * -> account status
+ * Your entity ≠ Spring’s contract
+ * This class bridges that gap.
+ * */
     private Long id;
     private String username;
     private String email;

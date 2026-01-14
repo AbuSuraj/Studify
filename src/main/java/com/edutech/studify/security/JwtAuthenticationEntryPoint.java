@@ -14,9 +14,21 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 
 /**
+ * global authentication error handler
  * This class handles authentication errors
  * Called when an unauthenticated user tries to access a protected resource
+ ** Triggered when:
+ * A protected endpoint is accessed
+ * SecurityContext has no valid Authentication
+ * OR authentication fails (invalid / missing JWT)
  */
+
+/**
+ * Why it exists
+ * Default Spring response = HTML / plain text ❌
+ * APIs need structured JSON errors ✅
+ * Centralized handling of unauthenticated access
+ * */
 @Component
 public class JwtAuthenticationEntryPoint implements AuthenticationEntryPoint {
 

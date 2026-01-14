@@ -11,6 +11,9 @@ import org.springframework.stereotype.Component;
 import javax.crypto.SecretKey;
 import java.util.Date;
 
+/**
+ * JwtUtils creates and verifies tokens. Filters and controllers decide when to use it.
+ * */
 @Component
 public class JwtUtils {
 

@@ -26,12 +26,13 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @RequiredArgsConstructor
 public class SecurityConfig {
 
-    private final CustomUserDetailsService userDetailsService;
-    private final JwtAuthenticationEntryPoint authenticationEntryPoint;
+    private final CustomUserDetailsService userDetailsService; // Load user from DB
+    private final JwtAuthenticationEntryPoint authenticationEntryPoint; // Authenticates requests
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
 
     /**
      * Password encoder bean (BCrypt)
+     * Hash & verify passwords
      */
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -40,6 +41,7 @@ public class SecurityConfig {
 
     /**
      * Authentication provider
+     * runs ONLY during login
      */
     @Bean
     public AuthenticationProvider authenticationProvider() {
@@ -60,11 +62,18 @@ public class SecurityConfig {
 
     /**
      * Security filter chain
+     * Defines the security rules
+     * ✔ Called once at startup to construct filters
+     * ✔ Filters inside it run per request
+     * it runs for every HTTP request
+     * Spring Boot auto-registers the chain as a Servlet Filter.
+     * You never call it.
+     * Tomcat does.
      */
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-                // Disable CSRF (not needed for stateless JWT)
+                // Disable CSRF (not needed for stateless JWT) it is for cookie-based sessions
                 .csrf(AbstractHttpConfigurer::disable)
 
                 // Exception handling
@@ -91,8 +100,30 @@ public class SecurityConfig {
                 .authenticationProvider(authenticationProvider())
 
                 // Add JWT filter
-                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class); /** Why:
+                JWT must run before Spring’s default auth
+                Username/password is NOT used here
+             * .addFilterBefore() = Arrange guards
+             * doFilter() = Guard checks every visitor
+         */
 
         return http.build();
     }
 }
+
+/**
+ * STARTUP:
+ * build SecurityFilterChain
+ *
+ * REQUEST:
+ * JwtAuthenticationFilter
+ *  → SecurityContext
+ *  → AuthorizationFilter
+ *  → Controller
+ *
+ * LOGIN:
+ * Controller
+ *  → AuthenticationManager
+ *  → AuthenticationProvider
+ *  → PasswordEncoder
+ * */

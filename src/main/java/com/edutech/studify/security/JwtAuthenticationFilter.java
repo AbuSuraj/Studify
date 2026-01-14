@@ -15,13 +15,34 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 
+/**
+ * JwtAuthenticationFilter is called automatically for EVERY HTTP request, right after the request enters Spring Security’s filter chain
+ * — not by your controller, not by you.
+ * */
 @Component
 @RequiredArgsConstructor
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtUtils jwtUtils;
     private final CustomUserDetailsService userDetailsService;
-
+/**
+ * ### Visual Flow:
+ * Request with Token
+ *        ↓
+ * 1. Extract JWT from "Authorization: Bearer <token>"
+ *        ↓
+ * 2. Validate token (signature, expiration)
+ *        ↓
+ * 3. Extract username from token payload
+ *        ↓
+ * 4. Load full user details from database
+ *        ↓
+ * 5. Create Authentication object with authorities
+ *        ↓
+ * 6. Store in SecurityContext (thread-local storage)
+ *        ↓
+ * 7. Pass request to next filter/controller
+ * */
     @Override
     protected void doFilterInternal(HttpServletRequest request,
                                     HttpServletResponse response,
@@ -32,15 +53,15 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
             // Validate token and set authentication
             if (jwt != null && jwtUtils.validateToken(jwt)) {
-                String username = jwtUtils.getUsernameFromToken(jwt);
+                String username = jwtUtils.getUsernameFromToken(jwt); // Extract username from token payload
 
-                UserDetails userDetails = userDetailsService.loadUserByUsername(username);
+                UserDetails userDetails = userDetailsService.loadUserByUsername(username); // Load full user details from database
 
                 UsernamePasswordAuthenticationToken authentication =
                         new UsernamePasswordAuthenticationToken(
                                 userDetails,
                                 null,
-                                userDetails.getAuthorities()
+                                userDetails.getAuthorities() // Create Authentication object with authorities
                         );
 
                 authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
@@ -52,7 +73,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             System.err.println("Cannot set user authentication: " + e.getMessage());
         }
 
-        filterChain.doFilter(request, response);
+        filterChain.doFilter(request, response); // Pass request to next filter/controller
     }
 
     /**

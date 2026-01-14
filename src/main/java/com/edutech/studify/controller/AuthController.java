@@ -18,7 +18,12 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
+/**
+ * You don’t need @PreAuthorize in AuthController because:
+ * Authentication endpoints must be public
+ * Authentication is enforced globally by the filter chain
+ * @PreAuthorize is for business rules, not basic authentication
+ * */
 @RestController
 @RequestMapping("/api/auth")
 @RequiredArgsConstructor
