@@ -9,14 +9,35 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import java.util.Optional;
-
+/**Handles all database operations for students. Spring Data JPA auto-generates implementations.*/
 @Repository
 public interface StudentRepository extends JpaRepository<Student, Long> {
     Optional<Student> findByEmail(String email);
+    /**
+   WHY: Check if email already exists before creating student
+   AUTO-GENERATED SQL:
+   SELECT * FROM students WHERE email = ? AND deleted = false
+
+   BUSINESS NEED: Prevent duplicate emails
+   */
     Optional<Student> findByUserId(Long userId);
     boolean existsByEmail(String email);
+      /**
+    WHY: Quick check without loading entire student object
+    RETURNS: true/false (faster than findByEmail)
+    BUSINESS NEED: Validation before creating/updating student
+    */
 
     Page<Student> findByDepartmentId(Long departmentId, Pageable pageable);
+    /**
+   WHY: List all students in a department
+   PAGEABLE: Returns 20 students at a time (not all 10,000!)
+
+   BUSINESS SCENARIO:
+   Admin: "Show me all Computer Science students"
+   Query: findByDepartmentId(1, PageRequest.of(0, 20))
+   Returns: Page 1 of students (1-20 of 500 total)
+   */
     Page<Student> findByStatus(StudentStatus status, Pageable pageable);
     Page<Student> findByDepartmentIdAndStatus(Long departmentId, StudentStatus status, Pageable pageable);
 

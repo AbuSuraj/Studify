@@ -30,3 +30,18 @@ public class UpdateStudentRequest {
 
     private Long departmentId;
 }
+/**
+ * WHY SEPARATE DTO FOR UPDATE?
+ * <p>
+ * 1. Different validation rules:
+ * - Create: All fields required
+ * - Update: All fields optional (partial update)
+ * <p>
+ * 2. Different fields allowed:
+ * - Create: Sets initial values (enrollment date, etc.)
+ * - Update: Can't change enrollment date
+ * <p>
+ * 3. Different permissions:
+ * - ADMIN: Can update all fields
+ * - STUDENT: Can only update phone and address
+ */

@@ -31,6 +31,27 @@ public class StudentResponse {
     private String createdBy;
     private LocalDateTime lastModifiedAt;
     private String lastModifiedBy;
+ /**
+    WHY THIS STRUCTURE:
+
+    1. Computed fields:
+       - fullName: firstName + " " + lastName
+       - Client doesn't need to concatenate
+    
+    2. Nested DTOs:
+       - department: Only id, name, code (not entire Department entity)
+       - Reduces payload size
+       - Prevents circular references
+
+    3. Audit fields:
+       - createdAt, createdBy: Who created, when
+       - lastModifiedAt, lastModifiedBy: Last update
+       - Transparency for admin
+
+    4. Missing fields (intentional):
+       - No password (security!)
+       - No deleted/deletedAt fields (shouldn't see on active student)
+    */
 
     @Data
     @Builder

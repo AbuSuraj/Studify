@@ -68,7 +68,11 @@ public class StudentController {
     })
     public ResponseEntity<ApiResponse<StudentResponse>> createStudent(
             @Valid @RequestBody CreateStudentRequest request) {
-
+        /**@Valid TRIGGERS:
+        - @NotBlank checks
+        - @Email format check
+        - @Pattern regex validation
+        - All validation annotations in DTO*/
         StudentResponse response = studentService.createStudent(request);
 
         return ResponseEntity
@@ -137,7 +141,8 @@ public class StudentController {
             )
     })
     public ResponseEntity<ApiResponse<StudentResponse>> getStudentById(
-            @Parameter(description = "Student ID") @PathVariable Long id) {
+            @Parameter(description = "Student ID")
+            @PathVariable Long id) {
 
         StudentResponse response = studentService.getStudentById(id);
 
@@ -146,7 +151,25 @@ public class StudentController {
 
     /**
      * Get current student profile
-     */
+
+     *         /*
+     *         BUSINESS SCENARIO:
+     *         Student logs in → wants to see their own profile
+     *         Don't need to know their student ID
+     *         Just call /api/v1/students/me
+
+     *         FLOW:
+     *         1. JWT contains user email
+     *         2. Security loads user from database
+     *         3. Service finds student by user ID
+     *         4. Returns student profile
+
+     *         WHY SEPARATE ENDPOINT:
+     *         - Convenience (don't need ID)
+     *         - Security (can't accidentally view wrong student)
+     *         - Common pattern in REST APIs
+     *         */
+
     @GetMapping("/me")
     @PreAuthorize("hasRole('STUDENT')")
     @Operation(
@@ -197,7 +220,8 @@ public class StudentController {
             )
     })
     public ResponseEntity<ApiResponse<StudentResponse>> updateStudent(
-            @Parameter(description = "Student ID") @PathVariable Long id,
+            @Parameter(description = "Student ID")
+            @PathVariable Long id,
             @Valid @RequestBody UpdateStudentRequest request) {
 
         StudentResponse response = studentService.updateStudent(id, request);
