@@ -14,6 +14,14 @@ import java.util.List;
         @Index(name = "idx_course_teacher", columnList = "teacher_id"),
         @Index(name = "idx_course_semester", columnList = "semester")
 })
+/** Why Indexes?
+ Performance: Queries filtering by courseCode, departmentId, teacherId, semester become O(log n) instead of O(n)
+ Common Queries: These fields are frequently used in search/filter operations*/
+
+/*
+* When to Index: Columns in WHERE, JOIN, ORDER BY clauses
+* Rule of Thumb: Index if column used in >30% of queries
+* */
 @Getter
 @Setter
 @NoArgsConstructor
@@ -54,6 +62,7 @@ public class Course extends BaseEntity {
     @Column(name = "max_capacity", nullable = false)
     private Integer maxCapacity;
 
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "department_id", nullable = false)
     private Department department;
@@ -66,6 +75,13 @@ public class Course extends BaseEntity {
     @OneToMany(mappedBy = "course", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default  // This tells Lombok to use the default value in builder
     private List<Enrollment> enrollments = new ArrayList<>();
+    /**
+     * Cascading = propagate JPA operations
+     Parent action → automatically applied to child
+     Prevents manual save/delete of child entities*/
+
+    /**CascadeType.ALL: Save/delete course → save/delete enrollments
+     orphanRemoval = true: Remove enrollment from list → delete from DB*/
 
     // Helper method to get enrolled student count
     @Transient
@@ -77,6 +93,10 @@ public class Course extends BaseEntity {
                 .filter(e -> e.getStatus() == EnrollmentStatus.ACTIVE)
                 .count();
     }
+    /**Why @Transient?
+     Not stored in database (computed on-the-fly)
+     Avoids data duplication and synchronization issues
+     Always reflects current state of enrollments*/
 
     // Helper method to check if course is full
     @Transient

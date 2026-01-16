@@ -26,6 +26,12 @@ public interface CourseRepository extends JpaRepository<Course, Long> {
             "LOWER(c.courseCode) LIKE LOWER(CONCAT('%', :search, '%'))")
     Page<Course> searchCourses(@Param("search") String search, Pageable pageable);
 
+    /** Why This Approach?
+     Dynamic Queries: Parameters can be null (optional filters)
+     Case-Insensitive: LOWER() ensures consistent search
+     Wildcard Search: LIKE '%...%' finds partial matches
+     Type Safety: @Param prevents SQL injection*/
+
     @Query("SELECT c FROM Course c WHERE " +
             "(:search IS NULL OR LOWER(c.name) LIKE LOWER(CONCAT('%', :search, '%')) OR LOWER(c.courseCode) LIKE LOWER(CONCAT('%', :search, '%'))) AND " +
             "(:departmentId IS NULL OR c.department.id = :departmentId) AND " +

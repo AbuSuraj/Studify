@@ -236,3 +236,22 @@ public class TeacherController {
                         .build());
     }
 }
+/** @PreAuthorize Works (Key Points Only)
+
+Runs before the method is executed
+
+Uses Spring Expression Language (SpEL) to decide access
+
+Evaluates against the current Authentication (SecurityContext)
+
+If expression is false → throws AccessDeniedException
+
+Works at method level (controller or service)*/
+
+// Important Rules
+//
+//Requires @EnableMethodSecurity (or @EnableGlobalMethodSecurity)
+//
+//Role names are checked as ROLE_<NAME>
+//
+//Only checks authorization, not business logic

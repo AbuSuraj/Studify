@@ -70,3 +70,145 @@ Because:
 * Access pattern is wrong
 
 * Solution is controlled fetching
+
+### cascade
+- Cascading = propagate JPA operations
+
+- Parent action → automatically applied to child
+
+- Prevents manual save/delete of child entities
+
+
+```java
+@OneToMany(
+    mappedBy = "course",
+    cascade = CascadeType.ALL,
+    orphanRemoval = true
+)
+@Builder.Default
+private List<Enrollment> enrollments = new ArrayList<>();
+```
+
+---
+
+## What Each Part Means
+
+### `@OneToMany`
+
+✅ **One `Course` → many `Enrollment`s**
+Defines a one-to-many relationship between `Course` and `Enrollment`.
+
+---
+
+### `mappedBy = "course"`
+
+✅ **`Enrollment` owns the foreign key**
+This tells JPA that the relationship is managed on the `Enrollment` side via its `course` field.
+
+---
+
+### `cascade = CascadeType.ALL`
+
+✅ **All operations on `Course` propagate to `Enrollment`**
+
+Any lifecycle operation performed on `Course` will automatically be applied to its `Enrollment`s.
+
+---
+
+### `orphanRemoval = true`
+
+✅ **Removing an enrollment from the list deletes it from the database**
+
+If an `Enrollment` is removed from the `enrollments` collection, JPA will delete it from the DB.
+
+---
+
+### `@Builder.Default`
+
+✅ **Ensures the builder does not set the list to `null`**
+When using Lombok’s `@Builder`, this guarantees `enrollments` is initialized with an empty list.
+
+---
+
+## CascadeType Values (Must Know)
+
+### `CascadeType.PERSIST`
+
+Saving parent → saves children
+
+```java
+entityManager.persist(course);
+```
+
+---
+
+### `CascadeType.MERGE`
+
+Updating parent → updates children
+
+```java
+entityManager.merge(course);
+```
+
+---
+
+### `CascadeType.REMOVE`
+
+Deleting parent → deletes children
+
+```java
+entityManager.remove(course);
+```
+
+---
+
+### `CascadeType.REFRESH`
+
+Reloading parent → reloads children from database
+
+---
+
+### `CascadeType.DETACH`
+
+Detaching parent → detaches children from persistence context
+
+---
+
+### `CascadeType.ALL`
+
+Shortcut for:
+
+* `PERSIST`
+* `MERGE`
+* `REMOVE`
+* `REFRESH`
+* `DETACH`
+
+---
+
+## When to Use `CascadeType.ALL` ✅
+
+Use it when:
+
+* Child **cannot exist without** parent
+* Parent is the **aggregate root**
+* Child lifecycle is **fully owned** by parent
+
+### Your Case
+
+* `Enrollment` without `Course` ❌
+* Correct usage ✔
+
+---
+
+## When **NOT** to Use Cascade ❌
+
+Avoid cascading for:
+
+* Shared entities (e.g. `User`, `Department`)
+* Reference / lookup data
+* Core many-to-many relationships
+
+---
+
+✅ **Summary**: This configuration is ideal for strict parent–child relationships where the child’s lifecycle is fully dependent on the parent.

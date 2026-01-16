@@ -34,6 +34,7 @@ public class CourseController {
     @Operation(summary = "Create new course", description = "Create a new course (Admin only)")
     public ResponseEntity<ApiResponse<CourseResponse>> createCourse(
             @Valid @RequestBody CreateCourseRequest request) {
+         // @Valid: Bean Validation (JSR-380) checks DTO constraints
 
         CourseResponse course = courseService.createCourse(request);
 
