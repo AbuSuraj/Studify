@@ -285,6 +285,30 @@ public class TeacherService {
                             "Current course count: " + teacher.getCourses().size()
             );
         }
+         /*
+    WHY THIS CHECK IS CRITICAL:
+
+    SCENARIO WITHOUT CHECK:
+    1. Dr. Smith teaches "Data Structures"
+    2. 50 students enrolled
+    3. Admin deletes Dr. Smith
+    4. Course now has no teacher!
+    5. Students can't see grades, attendance
+    6. System breaks
+
+    PROPER FLOW:
+    1. Admin tries to delete Dr. Smith
+    2. System checks: Has 3 courses
+    3. Throws exception: "Cannot delete, has courses"
+    4. Admin reassigns courses to Dr. Jones
+    5. Now Dr. Smith has 0 courses
+    6. Can safely delete
+
+    DIFFERENCE FROM STUDENT:
+    - Students CAN be deleted with enrollments
+    - Enrollments are historical records
+    - Teacher-Course is operational relationship
+    */
 
         // Soft delete
         teacher.setDeleted(true);

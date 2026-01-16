@@ -26,6 +26,10 @@ public class Teacher extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+    /**
+    WHY: Unique identifier for each teacher
+    BUSINESS NEED: Reference in courses, track who teaches what
+    */
 
     @OneToOne
     @JoinColumn(name = "user_id", unique = true, nullable = false)
@@ -51,9 +55,27 @@ public class Teacher extends BaseEntity {
     @Column(nullable = false, length = 15)
     private String phone;
 
+    /**MANY-TO-ONE: Many teachers → One department*/
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "department_id")
     private Department department;
+     /*
+    WHY: Teacher belongs to a department
+    MANY-TO-ONE: Many teachers → One department
+
+    BUSINESS SCENARIO:
+    - Computer Science department has 10 teachers
+    - All 10 teachers have department_id = 1
+    */
+
+    /** department_id is a foreign key
+    The Department entity is NOT loaded immediately
+    📌 Only loaded when you do:
+    student.getDepartment()
+
+     one cons:
+     ❌ Can cause LazyInitializationException if session is closed
+     */
 
     @Size(max = 100, message = "Specialization must not exceed 100 characters")
     @Column(length = 100)
@@ -69,7 +91,8 @@ public class Teacher extends BaseEntity {
     @Column(name = "deleted_by", length = 50)
     private String deletedBy;
 
-    // Relationships
+    // Relationships.
+    /** ONE-TO-MANY: One teacher → Many courses */
     @OneToMany(mappedBy = "teacher", cascade = CascadeType.ALL)
     private List<Course> courses = new ArrayList<>();
 
