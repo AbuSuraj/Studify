@@ -71,7 +71,7 @@ Because:
 
 * Solution is controlled fetching
 
-### cascade
+## cascade
 - Cascading = propagate JPA operations
 
 - Parent action → automatically applied to child
@@ -89,21 +89,21 @@ Because:
 private List<Enrollment> enrollments = new ArrayList<>();
 ```
 
----
 
-## What Each Part Means
+
+### What Each Part Means
 
 ### `@OneToMany`
 
-✅ **One `Course` → many `Enrollment`s**
-Defines a one-to-many relationship between `Course` and `Enrollment`.
+✅ **One `Course` → many `Enrollments`**
+
 
 ---
 
 ### `mappedBy = "course"`
 
 ✅ **`Enrollment` owns the foreign key**
-This tells JPA that the relationship is managed on the `Enrollment` side via its `course` field.
+✅ This tells JPA that the relationship is managed on the `Enrollment` side via its `course` field.
 
 ---
 

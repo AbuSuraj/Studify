@@ -46,16 +46,16 @@ DTO gives:
 
 ### Why Separate Mapper? (Important Points Only)
 
-Keeps entities and API contracts separate
+- Keeps entities and API contracts separate
 
-Prevents exposing JPA entities to clients
+- Prevents exposing JPA entities to clients
 
-Centralizes mapping logic (single source of truth)
+- Centralizes mapping logic (single source of truth)
 
-Improves security by controlling exposed fields
+- Improves security by controlling exposed fields
 
-Avoids lazy-loading & serialization issues
+- Avoids lazy-loading & serialization issues
 
-Keeps services and controllers clean
+- Keeps services and controllers clean
 
-Makes code easier to maintain and refactor
+- Makes code easier to maintain and refactor
