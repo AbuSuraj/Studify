@@ -24,6 +24,18 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+/**
+ * What the Course Module Must Do:
+ * Admin can create courses with course code, credits, capacity
+ * Anyone can view courses (students browse, teachers see assignments)
+ * Track course capacity (max students, current enrollment, available seats)
+ * Assign teachers to courses (one teacher per course)
+ * Link courses to departments (organizational structure)
+ * Search/filter courses (by department, semester, teacher, availability)
+ * Prevent over-enrollment (can't enroll if course full)
+ * Track enrollments (which students are in which courses)
+ * Admin can update/delete courses (only if no enrollments)*/
+
 @Service
 @RequiredArgsConstructor
 @Slf4j

@@ -19,6 +19,17 @@ import java.util.List;
  Common Queries: These fields are frequently used in search/filter operations*/
 
 /*
+WITHOUT INDEXES: Database scans entire table
+WITH INDEXES: Database uses index (binary search)
+
+EXAMPLE:
+10,000 courses in database
+Search "CS101"
+- Without index: Check all 10,000 rows (slow!)
+- With index: Binary search, check ~14 rows (fast!)
+*/
+
+/*
 * When to Index: Columns in WHERE, JOIN, ORDER BY clauses
 * Rule of Thumb: Index if column used in >30% of queries
 * */
@@ -74,6 +85,9 @@ public class Course extends BaseEntity {
     // Relationships
     @OneToMany(mappedBy = "course", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default  // This tells Lombok to use the default value in builder
+    //  Initialize as empty list
+    //    - Prevents NullPointerException
+    //    - Can safely call course.getEnrollments().size()
     private List<Enrollment> enrollments = new ArrayList<>();
     /**
      * Cascading = propagate JPA operations

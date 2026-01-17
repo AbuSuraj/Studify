@@ -66,4 +66,8 @@ public class Grade extends BaseEntity {
             default -> new BigDecimal("0.0");
         };
     }
+    /** WHY BigDecimal (not double):
+     - Precise decimal calculations
+     - No floating point errors
+     - Financial/academic calculations require precision*/
 }

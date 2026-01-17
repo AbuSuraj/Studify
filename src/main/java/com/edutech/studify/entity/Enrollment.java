@@ -27,6 +27,7 @@ public class Enrollment extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    //- One student → Many enrollments (multiple courses)
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "student_id", nullable = false)
     private Student student;
@@ -34,6 +35,11 @@ public class Enrollment extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "course_id", nullable = false)
     private Course course;
+        /*
+    WHY MANY-TO-ONE (not One-to-One):
+    - One student → Many enrollments (multiple courses)
+    - One course → Many enrollments (multiple students)
+         */
 
     @NotNull(message = "Enrollment date is required")
     @Column(name = "enrollment_date", nullable = false)

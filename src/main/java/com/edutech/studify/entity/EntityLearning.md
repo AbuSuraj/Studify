@@ -1,3 +1,49 @@
+# Entity Indexing Strategy
+
+## Why Indexes?
+
+### Performance
+Queries filtering by the following columns become **O(log n)** instead of **O(n)**:
+
+- `courseCode`
+- `departmentId`
+- `teacherId`
+- `semester`
+
+These fields are frequently used in search and filter operations.
+
+---
+
+## How Indexes Improve Performance
+
+### Without Indexes
+- Database performs a **full table scan**
+- Time complexity: **O(n)**
+
+### With Indexes
+- Database uses an **index (binary search)**
+- Time complexity: **O(log n)**
+
+---
+
+## Example
+
+**10,000 courses in database**  
+Search: `CS101`
+
+- ❌ Without index → checks all 10,000 rows (slow)
+- ✅ With index → binary search, ~14 checks (fast)
+
+---
+
+## Indexing Guidelines
+
+- Index columns used in **WHERE**, **JOIN**, and **ORDER BY** clauses
+- **Rule of thumb**: Add an index if a column is used in **more than 30% of queries**
+
+---
+
+
 # JPA Fetch Type Guide
 
 ## What is `fetchType`?
