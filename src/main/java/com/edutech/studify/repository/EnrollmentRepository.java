@@ -13,8 +13,7 @@ import java.util.Optional;
 
 @Repository
 public interface EnrollmentRepository extends JpaRepository<Enrollment, Long> {
-    Optional<Enrollment> findByStudentIdAndCourseId(Long studentId, Long courseId);
-    boolean existsByStudentIdAndCourseId(Long studentId, Long courseId);
+
     boolean existsByStudentIdAndCourseIdAndStatus(Long studentId, Long courseId, EnrollmentStatus status);
 
     Page<Enrollment> findByStudentId(Long studentId, Pageable pageable);
@@ -25,14 +24,10 @@ public interface EnrollmentRepository extends JpaRepository<Enrollment, Long> {
     List<Enrollment> findByCourseId(Long courseId);
     Page<Enrollment> findByCourseIdAndStatus(Long courseId, EnrollmentStatus status, Pageable pageable);
 
-    long countByCourseIdAndStatus(Long courseId, EnrollmentStatus status);
-    long countByStudentIdAndStatus(Long studentId, EnrollmentStatus status);
-
     @Query("SELECT e FROM Enrollment e WHERE e.student.id = :studentId AND e.status = 'ACTIVE'")
     List<Enrollment> findActiveEnrollmentsByStudentId(@Param("studentId") Long studentId);
 
     @Query("SELECT e FROM Enrollment e WHERE e.course.id = :courseId AND e.status = 'ACTIVE'")
     List<Enrollment> findActiveEnrollmentsByCourseId(@Param("courseId") Long courseId);
 
-    long countByStatus(EnrollmentStatus status);
 }

@@ -22,12 +22,6 @@ public interface AttendanceRepository extends JpaRepository<Attendance, Long> {
     // Check if attendance exists for enrollment and date
     boolean existsByEnrollmentIdAndDate(Long enrollmentId, LocalDate date);
 
-    // Find attendance by enrollment
-    List<Attendance> findByEnrollmentId(Long enrollmentId);
-
-    // Find attendance by enrollment with pagination
-    Page<Attendance> findByEnrollmentId(Long enrollmentId, Pageable pageable);
-
     // Find attendance by student
     @Query("SELECT a FROM Attendance a WHERE a.enrollment.student.id = :studentId")
     List<Attendance> findByStudentId(@Param("studentId") Long studentId);
@@ -59,38 +53,4 @@ public interface AttendanceRepository extends JpaRepository<Attendance, Long> {
             @Param("startDate") LocalDate startDate,
             @Param("endDate") LocalDate endDate
     );
-
-    // Find attendance by date range
-    @Query("SELECT a FROM Attendance a WHERE a.date BETWEEN :startDate AND :endDate")
-    List<Attendance> findByDateRange(@Param("startDate") LocalDate startDate, @Param("endDate") LocalDate endDate);
-
-    // Count attendance by student, course, and status
-    @Query("SELECT COUNT(a) FROM Attendance a WHERE " +
-            "a.enrollment.student.id = :studentId AND " +
-            "a.enrollment.course.id = :courseId AND " +
-            "a.status = :status")
-    long countByStudentIdAndCourseIdAndStatus(
-            @Param("studentId") Long studentId,
-            @Param("courseId") Long courseId,
-            @Param("status") AttendanceStatus status
-    );
-
-    // Calculate attendance percentage for enrollment
-    @Query("SELECT " +
-            "CAST(COUNT(CASE WHEN a.status = 'PRESENT' OR a.status = 'LATE' THEN 1 END) AS double) * 100.0 / COUNT(a) " +
-            "FROM Attendance a WHERE a.enrollment.id = :enrollmentId")
-    Double calculateAttendancePercentageByEnrollmentId(@Param("enrollmentId") Long enrollmentId);
-
-    // Calculate attendance percentage for student in course
-    @Query("SELECT " +
-            "CAST(COUNT(CASE WHEN a.status = 'PRESENT' OR a.status = 'LATE' THEN 1 END) AS double) * 100.0 / COUNT(a) " +
-            "FROM Attendance a WHERE a.enrollment.student.id = :studentId AND a.enrollment.course.id = :courseId")
-    Double calculateAttendancePercentageByStudentIdAndCourseId(
-            @Param("studentId") Long studentId,
-            @Param("courseId") Long courseId
-    );
-
-    // Get attendance statistics for course
-    @Query("SELECT a.status, COUNT(a) FROM Attendance a WHERE a.enrollment.course.id = :courseId AND a.date = :date GROUP BY a.status")
-    List<Object[]> getAttendanceStatisticsByCourseIdAndDate(@Param("courseId") Long courseId, @Param("date") LocalDate date);
 }

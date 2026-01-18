@@ -15,11 +15,6 @@ public interface CourseRepository extends JpaRepository<Course, Long> {
     Optional<Course> findByCourseCode(String courseCode);
     boolean existsByCourseCode(String courseCode);
 
-    Page<Course> findByDepartmentId(Long departmentId, Pageable pageable);
-    Page<Course> findByTeacherId(Long teacherId, Pageable pageable);
-    Page<Course> findBySemester(String semester, Pageable pageable);
-
-    List<Course> findByTeacherId(Long teacherId);
 
     @Query("SELECT c FROM Course c WHERE " +
             "LOWER(c.name) LIKE LOWER(CONCAT('%', :search, '%')) OR " +
@@ -38,10 +33,6 @@ public interface CourseRepository extends JpaRepository<Course, Long> {
             @Param("teacherId") Long teacherId,
             Pageable pageable
     );
-
-    long countByDepartmentId(Long departmentId);
-    long countByTeacherId(Long teacherId);
-    long countBySemester(String semester);
 
     @Query("SELECT c FROM Course c WHERE " +
             "(SELECT COUNT(e) FROM Enrollment e WHERE e.course.id = c.id AND e.status = 'ACTIVE') < c.maxCapacity")

@@ -11,16 +11,13 @@ import java.util.Optional;
 
 @Repository
 public interface TeacherRepository extends JpaRepository<Teacher, Long> {
-    Optional<Teacher> findByEmail(String email);
+
     Optional<Teacher> findByUserId(Long userId);
     boolean existsByEmail(String email);
 
     Page<Teacher> findByDepartmentId(Long departmentId, Pageable pageable);
 
-    @Query("SELECT t FROM Teacher t WHERE " +
-            "LOWER(CONCAT(t.firstName, ' ', t.lastName)) LIKE LOWER(CONCAT('%', :search, '%')) OR " +
-            "LOWER(t.email) LIKE LOWER(CONCAT('%', :search, '%'))")
-    Page<Teacher> searchTeachers(@Param("search") String search, Pageable pageable);
+
 
     @Query("SELECT t FROM Teacher t WHERE " +
             "(:search IS NULL OR LOWER(CONCAT(t.firstName, ' ', t.lastName)) LIKE LOWER(CONCAT('%', :search, '%')) OR LOWER(t.email) LIKE LOWER(CONCAT('%', :search, '%'))) AND " +
@@ -30,8 +27,6 @@ public interface TeacherRepository extends JpaRepository<Teacher, Long> {
             @Param("departmentId") Long departmentId,
             Pageable pageable
     );
-
-    long countByDepartmentId(Long departmentId);
 
     @Query("SELECT t FROM Teacher t WHERE t.deleted = true")
     Page<Teacher> findDeletedTeachers(Pageable pageable);
