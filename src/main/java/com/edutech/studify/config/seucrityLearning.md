@@ -194,7 +194,6 @@ It is called **manually** from:
  -  JwtUtils bean created (ONCE)
 ---
 
-# JwtUtils.java
 ## What Is JWT?
 
 **JWT (JSON Web Token)** is a **signed JSON token** that proves:
