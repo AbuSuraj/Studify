@@ -20,10 +20,10 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
-@Configuration
-@EnableWebSecurity
-@EnableMethodSecurity
-@RequiredArgsConstructor
+@Configuration // Spring will process this class at startup to set up beans
+@EnableWebSecurity //  Activates Spring Security features
+@EnableMethodSecurity   /**  Enables method-level security (@PreAuthorize, @Secured) */
+@RequiredArgsConstructor /** Auto-injects dependencies (cleaner than @Autowired) */
 public class SecurityConfig {
 
     private final CustomUserDetailsService userDetailsService; // Load user from DB

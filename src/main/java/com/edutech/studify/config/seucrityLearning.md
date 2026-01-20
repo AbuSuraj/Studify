@@ -1,9 +1,57 @@
-# JwtAuthenticationFilter
+
+# JWT Authentication Flow
+
+## Initial Login Flow
+
+1. **Client sends credentials** (email / password)
+   ↓
+2. **AuthController** receives `LoginRequest`
+   ↓
+3. **AuthenticationManager** validates credentials
+   ↓
+4. **CustomUserDetailsService** loads user from database
+   ↓
+5. **PasswordEncoder** compares hashed passwords
+   ↓
+6. **JwtUtils** generates JWT token
+   ↓
+7. **AuthResponse** returned with token
+
+---
+
+## Subsequent Requests Flow
+
+1. **Client sends JWT token** in `Authorization` header
+2. **JwtAuthenticationFilter** intercepts request
+3. **JwtUtils** validates token and extracts username
+4. **CustomUserDetailsService** loads user details
+5. **UsernamePasswordAuthenticationToken** is created
+6. **SecurityContext** is populated with authentication
+7. **Request proceeds** to the controller
+
+
+## SecurityConfig.java
+### Password Encoder Bean
+
+#### What it does:
+* BCrypt is a one-way hashing algorithm (you can't reverse it)
+* It automatically adds salt (random data) to prevent rainbow table attacks
+* When a user registers, you hash their password: passwordEncoder.encode("password123")
+* When they log in, you verify: passwordEncoder.matches("password123", hashedPassword)
+
+Why BCrypt?
+
+* One-way hashing (can't reverse)
+*  Includes salt automatically (prevents rainbow table attacks)
+* Slow by design (prevents brute-force attacks)
+* Adaptive (can increase work factor as computers get faster)
+
+## JwtAuthenticationFilter
 Spring Boot starts
- → @Component scanned
- → JwtAuthenticationFilter bean created
- → SecurityFilterChain built
- → addFilterBefore() places this filter in the chain
+ * → @Component scanned
+ * → JwtAuthenticationFilter bean created
+ * → SecurityFilterChain built
+ * → addFilterBefore() places this filter in the chain
 
 2️⃣ Runtime (EVERY HTTP REQUEST)
 HTTP request arrives
@@ -26,7 +74,7 @@ Tomcat
 * OncePerRequestFilter.doFilter()
 * JwtAuthenticationFilter.doFilterInternal()
 
-###Why It Runs for EVERY Request
+### Why It Runs for EVERY Request
 
 Because:
 ```
@@ -142,6 +190,123 @@ It is called **manually** from:
 
 ## Lifecycle
 - Spring Boot starts
--  → @Component scanned
- - → JwtUtils bean created (ONCE)
-##
+-   @Component scanned
+ -  JwtUtils bean created (ONCE)
+---
+
+# JwtUtils.java
+## What Is JWT?
+
+**JWT (JSON Web Token)** is a **signed JSON token** that proves:
+
+- **Who you are** → Authentication
+- **What you can do** → Authorization
+
+### Key Characteristics
+
+JWT is:
+- URL-safe
+- Compact
+- Self-contained
+
+---
+
+## JWT Structure (VERY IMPORTANT)
+
+A JWT has **3 parts**, separated by dots:
+
+* xxxxx.yyyyy.zzzzz
+* header.payload.signature
+
+---
+
+### 1️⃣ Header
+
+```json
+{
+  "alg": "HS256",
+  "typ": "JWT"
+}
+```
+
+* Contains:
+- Algorithm used for signing
+- Token type
+
+➡️ Base64 encoded
+
+### 2️⃣ Payload (Claims)
+````
+{
+  "sub": "john",
+  "role": "USER",
+  "iat": 1700000000,
+  "exp": 1700003600
+}
+````
+
+#### Common Claims
+* sub → username
+
+* iat → issued at
+
+* exp → expiration time
+
+* roles → authorities
+
+#### ⚠️ Payload is NOT encrypted
+#### ❌ Never store passwords or sensitive data
+
+### 3️⃣ Signature
+
+```HMACSHA256(
+  base64(header) + "." + base64(payload),
+  secret_key
+)
+```
+#### Purpose:
+
+* Ensures token integrity
+
+* Prevents tampering
+
+### How JWT Works (Request Flow)
+* User logs in (username / password)
+
+* Spring Boot validates credentials
+
+* Server generates JWT
+
+* Client stores JWT (localStorage / cookie)
+
+* Client sends JWT with every request
+
+* Server verifies: Signature & Expiration
+
+* Access granted
+
+### Where JWT Lives in Spring Security
+#### JWT Replaces
+* ❌ HttpSession
+
+* ❌ JSESSIONID
+
+#### JWT Integrates With
+✔ OncePerRequestFilter
+
+✔ SecurityFilterChain
+
+✔ AuthenticationManager
+
+### JWT Structure:
+```
+eyJhbGciOiJIUzUxMiJ9.eyJzdWxfQ.6DmLrg_1RCcUZFHddL4_VKB4HCVFoD8K3ZMA5tL59eEizTDD7lx4jHfXs3EVi8GL...
+     HEADER            PAYLOAD                    SIGNATURE
+```
+
+* Header: {"alg":"HS256","typ":"JWT"}
+* Payload: {"sub":"user@example.com","iat":1736...,"exp":1736...}
+* Signature: HMACSHA256(base64(header) + "." + base64(payload), secret)
+
+- Signature ensures token hasn't been modified
+- Anyone can decode payload (it's Base64), but can't forge signature without secret
