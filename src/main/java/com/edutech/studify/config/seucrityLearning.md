@@ -45,6 +45,35 @@ Why BCrypt?
 *  Includes salt automatically (prevents rainbow table attacks)
 * Slow by design (prevents brute-force attacks)
 * Adaptive (can increase work factor as computers get faster)
+### Stored value looks like:
+````
+$2a$10$W9hZKz...Qn9z0
+````
+This string contains:
+
+* Algorithm version ($2a$)
+
+* Strength (10)
+
+* Salt
+
+* Hash
+
+## Passwords are verified, not compared
+### Verifying a Password (Login) 
+* ❌ Never compare strings directly
+
+* ✅ Always use matches()
+
+### Why?
+- ➡️ BCrypt adds a random salt each time
+- ➡️ Hash output changes even for the same password
+### What matches() Does
+- Extracts the salt + cost from storedHash
+
+- Re-hashes rawPassword using the same salt
+
+- Compares results using constant-time comparison
 
 ## JwtAuthenticationFilter
 Spring Boot starts
@@ -228,7 +257,7 @@ A JWT has **3 parts**, separated by dots:
 }
 ```
 
-* Contains:
+### Contains:
 - Algorithm used for signing
 - Token type
 
@@ -308,4 +337,39 @@ eyJhbGciOiJIUzUxMiJ9.eyJzdWxfQ.6DmLrg_1RCcUZFHddL4_VKB4HCVFoD8K3ZMA5tL59eEizTDD7
 * Signature: HMACSHA256(base64(header) + "." + base64(payload), secret)
 
 - Signature ensures token hasn't been modified
-- Anyone can decode payload (it's Base64), but can't forge signature without secret
+- Anyone can decode payload (it's Base64), but can't forge signature without secret.
+
+## JWT in Spring Boot (High-Level Steps)
+### 1️⃣ User Login Endpoint
+
+- Accepts username/password
+
+- Authenticates via AuthenticationManager
+
+- Generates JWT
+
+### 2️⃣ JWT Utility
+
+- Generate token
+
+- Validate token
+
+- Extract username
+
+### 3️⃣ JWT Filter
+
+- Runs before Spring Security
+
+- Extracts token from header
+
+- Validates token
+
+- Sets authentication in SecurityContext
+
+### 4️⃣ Security Configuration
+
+- Disable session
+
+- Add JWT filter
+
+- Protect endpoints
