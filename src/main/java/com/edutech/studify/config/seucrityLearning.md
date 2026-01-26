@@ -31,6 +31,15 @@
 
 
 ## SecurityConfig.java
+Defines how Spring Security behaves:
+* Which endpoints are public
+
+* How authentication happens
+
+* Which filters run
+
+* Stateless JWT setup
+
 ### Password Encoder Bean
 
 #### What it does:
@@ -75,7 +84,58 @@ This string contains:
 
 - Compares results using constant-time comparison
 
-## JwtAuthenticationFilter
+### authenticationProvider()
+Tells Spring:
+* How to load users → CustomUserDetailsService
+* How to verify passwords → BCryptPasswordEncoder
+
+### authenticationManager()
+
+* Central component that performs authentication
+
+* Used in your login endpoint
+
+* Delegates to AuthenticationProvider
+
+### filterChain(HttpSecurity)
+
+This is the core configuration:
+
+Order of execution:
+
+1. Disable CSRF → JWT is stateless
+
+2. Exception handling → JwtAuthenticationEntryPoint
+
+3. Session policy → STATELESS
+
+4. Authorization rules
+
+5. Register AuthenticationProvider
+
+6. Add JwtAuthenticationFilter before username/password filter
+---
+# JwtAuthenticationFilter
+## purposes:
+* runs on every http request
+* If JWT exists → authenticate user.
+* **JWT is not automatic**.
+* Spring Security won’t read headers unless you do it.
+
+## Execution flow
+
+- Extract Authorization header
+
+-  Parse Bearer token
+
+- Validate JWT
+
+- Load user from DB
+
+- Create Authentication
+
+- Set into SecurityContext
+
 Spring Boot starts
  * → @Component scanned
  * → JwtAuthenticationFilter bean created
@@ -84,10 +144,10 @@ Spring Boot starts
 
 2️⃣ Runtime (EVERY HTTP REQUEST)
 HTTP request arrives
-→ Tomcat
-→ DelegatingFilterProxy
-→ FilterChainProxy
-→ JwtAuthenticationFilter.doFilterInternal()  👈 HERE
+- Tomcat
+- DelegatingFilterProxy
+- FilterChainProxy
+- JwtAuthenticationFilter.doFilterInternal()  👈 HERE
 
 This happens:
 * Before controller
@@ -373,3 +433,137 @@ eyJhbGciOiJIUzUxMiJ9.eyJzdWxfQ.6DmLrg_1RCcUZFHddL4_VKB4HCVFoD8K3ZMA5tL59eEizTDD7
 - Add JWT filter
 
 - Protect endpoints
+
+## signing key
+```
+private SecretKey getSigningKey() {
+    byte[] keyBytes = Decoders.BASE64.decode(jwtSecret);
+    return Keys.hmacShaKeyFor(keyBytes);
+}
+```
+## Why Base64?
+
+- Secret needs to be binary data (bytes)
+- Base64 encoding lets you store binary data as text in properties files
+- Keys.hmacShaKeyFor(): Creates HMAC key for HS256 algorithm
+
+ --- 
+
+# CustomUserDetailsService.java
+#### purpose:
+* Loads user data from DB for Spring Security.
+* Spring Security never talks directly to your repository.
+*  It only knows UserDetailsService.
+
+### Key methods
+#### loadUserByUsername(String email)
+
+* Called during login
+
+* Called during JWT validation
+
+* Returns UserDetailsImpl
+
+#### loadUserById(Long id)
+
+* Optional helper
+
+* Useful if token stores user ID instead of email
+
+---
+
+# UserDetailsImpl.java
+- Security-Compatible User
+- Your entity stores data.
+- UserDetailsImpl explains that data to Spring Security.
+
+### 🔑 Core idea (very simple)
+
+* 👉 Your **User** entity = database model
+* 👉 **UserDetails** = security model
+
+* They are not the same, so we need a bridge.
+
+* That bridge is **UserDetailsImpl**.
+
+#### purpose:
+##### Adapter between:
+* Your User entity
+* Spring Security’s UserDetails. 
+
+### Why we need it
+
+
+
+## Why Spring Security needs `UserDetails`
+
+Spring Security only cares about **authentication & authorization**.  
+So it asks only these questions:
+
+- What is the **username**?
+- What is the **password**?
+- What are the **roles / authorities**?
+- Is the account **enabled / locked / expired**?
+
+It does **NOT** care about:
+
+- `firstName`
+- `lastName`
+- `age`
+- `profile picture`
+- etc.
+
+#### Spring Security requires:
+
+* getUsername()
+
+* getPassword()
+
+* getAuthorities()
+
+* Account state flags
+
+* Your entity doesn’t match this interface.
+
+## Why your `User` entity cannot be used directly
+
+### Your entity
+
+```java
+class User {
+    Long id;
+    String email;
+    String username;
+    String password;
+    Role role;
+    Boolean isActive;
+}
+```
+### What Spring Security expects
+
+```
+public interface UserDetails {
+    String getUsername();
+    String getPassword();
+    Collection<? extends GrantedAuthority> getAuthorities();
+    boolean isEnabled();
+}
+```
+
+#### Problem
+
+* ❌ These two do not match
+
+* role ≠ Collection<GrantedAuthority>
+
+* isActive ≠ isEnabled()
+
+* No contract with Spring Security
+
+### public static UserDetailsImpl build(User user)
+This method:
+* Converts Role → ROLE_ADMIN
+
+* Maps email → username
+
+* Maps isActive → enabled

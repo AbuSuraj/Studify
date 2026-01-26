@@ -41,6 +41,9 @@ public class SecurityConfig {
 
     /**
      * Authentication provider
+     * Tells Spring:
+     * How to load users → CustomUserDetailsService
+     * How to verify passwords → BCryptPasswordEncoder
      * runs ONLY during login
      */
     @Bean

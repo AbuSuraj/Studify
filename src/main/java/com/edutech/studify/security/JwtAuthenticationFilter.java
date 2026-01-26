@@ -53,9 +53,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
             // Validate token and set authentication
             if (jwt != null && jwtUtils.validateToken(jwt)) {
-                String username = jwtUtils.getUsernameFromToken(jwt); // Extract username from token payload
+                String username = jwtUtils.getUsernameFromToken(jwt); /** Extract username from token payload */
 
-                UserDetails userDetails = userDetailsService.loadUserByUsername(username); // Load full user details from database
+                UserDetails userDetails = userDetailsService.loadUserByUsername(username); /** Load full user details from database (including roles/persmissions) */
 
                 UsernamePasswordAuthenticationToken authentication =
                         new UsernamePasswordAuthenticationToken(
@@ -68,6 +68,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
                 // Set authentication in SecurityContext
                 SecurityContextHolder.getContext().setAuthentication(authentication);
+                /** SecurityContextHolder:
+                 - Thread-local storage for authentication
+                 - Now Spring knows who the user is for this request
+                 - Controllers can access with @AuthenticationPrincipal*/
             }
         } catch (Exception e) {
             System.err.println("Cannot set user authentication: " + e.getMessage());
