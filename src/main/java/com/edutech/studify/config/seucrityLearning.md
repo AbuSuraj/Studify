@@ -60,9 +60,9 @@ $2a$10$W9hZKz...Qn9z0
 ````
 This string contains:
 
-* Algorithm version ($2a$)
+* Algorithm version (`$2a$`)
 
-* Strength (10)
+* Strength (`10$`)
 
 * Salt
 
@@ -567,3 +567,133 @@ This method:
 * Maps email → username
 
 * Maps isActive → enabled
+---
+
+```
+┌──────────────────────────────────────────────────────────────┐
+│ CLIENT SENDS REQUEST                                         │
+│ POST /api/auth/register                                      │
+│ { username, email, password, role }                          │
+└────────────────────────┬─────────────────────────────────────┘
+                         │
+                         ▼
+┌──────────────────────────────────────────────────────────────┐
+│ STEP 1: DispatcherServlet (Spring MVC)                       │
+│ • Receives HTTP request                                      │
+│ • Routes to appropriate controller                           │
+└────────────────────────┬─────────────────────────────────────┘
+                         │
+                         ▼
+┌──────────────────────────────────────────────────────────────┐
+│ STEP 2: CorsFilter                                           │
+│ • Checks origin (http://localhost:3000)                      │
+│ • Adds CORS headers to response                              │
+└────────────────────────┬─────────────────────────────────────┘
+                         │
+                         ▼
+┌──────────────────────────────────────────────────────────────┐
+│ STEP 3: SecurityFilterChain                                  │
+│ • Checks URL: /api/auth/register                             │
+│ • Matches permitAll() → No authentication required           │
+└────────────────────────┬─────────────────────────────────────┘
+                         │
+                         ▼
+┌──────────────────────────────────────────────────────────────┐
+│ STEP 4: JwtAuthenticationFilter                              │
+│ • Looks for Authorization header                             │
+│ • No token found (registration request)                      │
+│ • Continues to next filter                                   │
+└────────────────────────┬─────────────────────────────────────┘
+                         │
+                         ▼
+┌──────────────────────────────────────────────────────────────┐
+│ STEP 5: AuthController.registerUser()                        │
+│ • Maps URL to method                                         │
+│ • Deserializes JSON → RegisterRequest object                 │
+└────────────────────────┬─────────────────────────────────────┘
+                         │
+                         ▼
+┌──────────────────────────────────────────────────────────────┐
+│ STEP 6: Bean Validation (@Valid)                             │
+│ ✓ Username: 3-20 chars, alphanumeric                         │
+│ ✓ Email: valid format                                        │
+│ ✓ Password: min 6 chars, complex                             │
+│ ✓ Role: not null                                             │
+└────────────────────────┬─────────────────────────────────────┘
+                         │
+                         ▼
+┌──────────────────────────────────────────────────────────────┐
+│ STEP 7: AuthService.register()                               │
+│ ┌──────────────────────────────────────────────────────────┐ │
+│ │ 7A: Check email exists                                   │ │
+│ │     userRepository.existsByEmail()                       │ │
+│ │     SQL: SELECT EXISTS(SELECT 1 FROM users WHERE...)     │ │
+│ └──────────────────────────────────────────────────────────┘ │
+│                         │                                    │
+│                         ▼                                    │
+│ ┌──────────────────────────────────────────────────────────┐ │
+│ │ 7B: Check username exists                                │ │
+│ │     userRepository.existsByUsername()                    │ │
+│ └──────────────────────────────────────────────────────────┘ │
+└────────────────────────┬─────────────────────────────────────┘
+                         │
+                         ▼
+┌──────────────────────────────────────────────────────────────┐
+│ STEP 8: Create User Entity                                   │
+│ • User.builder()                                             │
+│ • passwordEncoder.encode(password)                           │
+│   Input:  "SecurePass123"                                    │
+│   Output: "$2a$10$N9qo8uLO..."                               │
+└────────────────────────┬─────────────────────────────────────┘
+                         │
+                         ▼
+┌──────────────────────────────────────────────────────────────┐
+│ STEP 9: Save to Database                                     │
+│ • userRepository.save(user)                                  │
+│ • JPA generates INSERT SQL                                   │
+│ • Database auto-generates ID                                 │
+│ • Transaction NOT committed yet (@Transactional)             │
+└────────────────────────┬─────────────────────────────────────┘
+                         │
+                         ▼
+┌──────────────────────────────────────────────────────────────┐
+│ STEP 10: Generate JWT Token                                  │
+│ • jwtUtils.generateTokenFromUsername(email)                  │
+│ • Creates JWT with:                                          │
+│   - Header: { alg: HS256, typ: JWT }                         │
+│   - Payload: { sub: email, iat: now, exp: +24h }             │
+│   - Signature: HMAC-SHA256(header.payload, secret)           │
+└────────────────────────┬─────────────────────────────────────┘
+                         │
+                         ▼
+┌──────────────────────────────────────────────────────────────┐
+│ STEP 11: Build AuthResponse                                  │
+│ • AuthResponse.builder()                                     │
+│ • Sets: token, id, username, email, role                     │
+└────────────────────────┬─────────────────────────────────────┘
+                         │
+                         ▼
+┌──────────────────────────────────────────────────────────────┐
+│ STEP 12: Transaction Commits                                 │
+│ • @Transactional method exits                                │
+│ • JPA flushes changes to database                            │
+│ • SQL COMMIT executed                                        │
+│ • User permanently saved                                     │
+└────────────────────────┬─────────────────────────────────────┘
+                         │
+                         ▼
+┌──────────────────────────────────────────────────────────────┐
+│ STEP 13: Response Serialization                              │
+│ • Jackson converts AuthResponse → JSON                       │
+│ • Sets Content-Type: application/json                        │
+│ • HTTP Status: 201 Created                                   │
+└────────────────────────┬─────────────────────────────────────┘
+                         │
+                         ▼
+┌──────────────────────────────────────────────────────────────┐
+│ STEP 14: Response Returns to Client                          │
+│ • Passes through security filters                            │
+│ • CORS headers added                                         │
+│ • Client receives JWT token                                  │
+└──────────────────────────────────────────────────────────────┘
+```
