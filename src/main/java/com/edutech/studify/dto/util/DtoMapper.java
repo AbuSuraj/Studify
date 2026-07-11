@@ -10,6 +10,16 @@ public class DtoMapper {
 
     // ============= User Profile Mapping =============
 
+    public RegisterResponse toRegisterResponse(User user) {
+        return RegisterResponse.builder()
+                .userId(user.getId())
+                .username(user.getUsername())
+                .email(user.getEmail())
+                .role(user.getRole())
+                .createdAt(user.getCreatedAt())
+                .build();
+    }
+
     public UserResponse toUserResponse(User user) {
         UserResponse.UserResponseBuilder builder = UserResponse.builder()
                 .id(user.getId())

@@ -11,7 +11,7 @@ import com.edutech.studify.entity.User;
 public interface AuthService {
     RegisterResponse register(RegisterRequest request);
     AuthResponse login(LoginRequest request);
-    User getCurrentUser();
+
     void changePassword(ChangePasswordRequest request);
     UserResponse getUserProfile();
 }
