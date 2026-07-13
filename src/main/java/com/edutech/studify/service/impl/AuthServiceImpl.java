@@ -71,6 +71,7 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
+    @Transactional(readOnly = true) // Micro-optimization: prevents Hibernate dirty-checking
     public AuthResponse login(LoginRequest request) {
         Authentication authentication;
         try {
