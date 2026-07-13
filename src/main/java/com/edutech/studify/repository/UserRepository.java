@@ -1,5 +1,6 @@
 package com.edutech.studify.repository;
 
+import com.edutech.studify.entity.Role;
 import com.edutech.studify.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
@@ -22,4 +23,5 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     // Find user by username or email
     Optional<User> findByUsernameOrEmail(String username, String email);
+    boolean existsByRole(Role role);
 }
