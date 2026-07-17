@@ -2,6 +2,7 @@ package com.edutech.studify.controller;
 
 import com.edutech.studify.dto.request.ChangePasswordRequest;
 import com.edutech.studify.dto.request.LoginRequest;
+import com.edutech.studify.dto.request.RefreshTokenRequest;
 import com.edutech.studify.dto.request.RegisterRequest;
 import com.edutech.studify.dto.response.ApiResponse;
 import com.edutech.studify.dto.response.AuthResponse;
@@ -47,6 +48,17 @@ public class AuthController {
         return ResponseEntity.ok(ApiResponse.success(response, "Login successful"));
     }
 
+    @PostMapping("/refresh-token")
+    @Operation(summary = "Exchange a refresh token for a new access token",
+            description = "The provided refresh token is revoked and replaced with a new one (rotation).")
+    public ResponseEntity<ApiResponse<AuthResponse>> refreshToken(
+            @Valid @RequestBody RefreshTokenRequest request) {
+
+        AuthResponse response = authService.refreshToken(request);
+
+        return ResponseEntity.ok(ApiResponse.success(response, "Token refreshed successfully"));
+    }
+
     @GetMapping("/me")
     @SecurityRequirement(name = "bearerAuth")
     @Operation(summary = "Get current user profile")
@@ -57,7 +69,8 @@ public class AuthController {
 
     @PutMapping("/change-password")
     @SecurityRequirement(name = "bearerAuth")
-    @Operation(summary = "Change password")
+    @Operation(summary = "Change password",
+            description = "Also revokes all of the user's existing refresh tokens, logging out other devices.")
     public ResponseEntity<ApiResponse<String>> changePassword(
             @Valid @RequestBody ChangePasswordRequest request) {
 
@@ -67,9 +80,11 @@ public class AuthController {
 
     @PostMapping("/logout")
     @SecurityRequirement(name = "bearerAuth")
-    @Operation(summary = "Logout user")
-    public ResponseEntity<ApiResponse<String>> logout() {
-        return ResponseEntity.ok(ApiResponse.success(null,
-                "Logout successful. Please remove the token from client."));
+    @Operation(summary = "Logout user", description = "Revokes the given refresh token.")
+    public ResponseEntity<ApiResponse<String>> logout(
+            @Valid @RequestBody RefreshTokenRequest request) {
+
+        authService.logout(request);
+        return ResponseEntity.ok(ApiResponse.success(null, "Logout successful."));
     }
 }

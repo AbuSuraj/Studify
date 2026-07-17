@@ -276,4 +276,19 @@ public class GlobalExceptionHandler {
 
         return new ResponseEntity<>(errorResponse, HttpStatus.INTERNAL_SERVER_ERROR);
     }
+
+    @ExceptionHandler(TokenRefreshException.class)
+    public ResponseEntity<GradeResponse.ErrorResponse> handleTokenRefreshException(
+            TokenRefreshException ex,
+            HttpServletRequest request) {
+
+        GradeResponse.ErrorResponse errorResponse = GradeResponse.ErrorResponse.builder()
+                .status(HttpStatus.UNAUTHORIZED.value())
+                .error(HttpStatus.UNAUTHORIZED.getReasonPhrase())
+                .message(ex.getMessage())
+                .path(request.getRequestURI())
+                .build();
+
+        return new ResponseEntity<>(errorResponse, HttpStatus.UNAUTHORIZED);
+    }
 }

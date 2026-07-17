@@ -2,6 +2,7 @@ package com.edutech.studify.service.impl;
 
 import com.edutech.studify.dto.request.ChangePasswordRequest;
 import com.edutech.studify.dto.request.LoginRequest;
+import com.edutech.studify.dto.request.RefreshTokenRequest;
 import com.edutech.studify.dto.request.RegisterRequest;
 import com.edutech.studify.dto.response.AuthResponse;
 import com.edutech.studify.dto.response.RegisterResponse;
@@ -16,6 +17,7 @@ import com.edutech.studify.exception.InvalidCredentialsException;
 import com.edutech.studify.repository.UserRepository;
 import com.edutech.studify.security.JwtUtils;
 import com.edutech.studify.service.AuthService;
+import com.edutech.studify.service.RefreshTokenService;
 import com.edutech.studify.util.SecurityUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -38,6 +40,7 @@ public class AuthServiceImpl implements AuthService {
     private final JwtUtils jwtUtils;
     private final SecurityUtils securityUtils;
     private final DtoMapper dtoMapper;
+    private final RefreshTokenService refreshTokenService;
 
     @Override
     @Transactional
@@ -71,7 +74,7 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    @Transactional(readOnly = true) // Micro-optimization: prevents Hibernate dirty-checking
+    @Transactional
     public AuthResponse login(LoginRequest request) {
         Authentication authentication;
         try {
@@ -83,21 +86,52 @@ public class AuthServiceImpl implements AuthService {
             throw new InvalidCredentialsException("Invalid email or password");
         }
 
-        String token = jwtUtils.generateToken(authentication);
+        String accessToken = jwtUtils.generateToken(authentication);
 
         User user = userRepository.findByEmail(request.getEmail())
                 .orElseThrow(() -> new InvalidCredentialsException("Invalid email or password"));
 
+        String refreshToken = refreshTokenService.createRefreshToken(user);
+
         log.info("User logged in: {}", user.getEmail());
 
         return AuthResponse.builder()
-                .token(token)
+                .token(accessToken)
+                .refreshToken(refreshToken)
                 .userId(user.getId())
                 .username(user.getUsername())
                 .email(user.getEmail())
                 .role(user.getRole())
                 .expiresIn(jwtUtils.getExpirationMs())
                 .build();
+    }
+
+    @Override
+    @Transactional
+    public AuthResponse refreshToken(RefreshTokenRequest request) {
+        User user = refreshTokenService.validateAndConsume(request.getRefreshToken());
+
+        String newAccessToken = jwtUtils.generateTokenFromUsername(user.getEmail());
+        String newRefreshToken = refreshTokenService.createRefreshToken(user);
+
+        log.info("Access token refreshed for user: {}", user.getEmail());
+
+        return AuthResponse.builder()
+                .token(newAccessToken)
+                .refreshToken(newRefreshToken)
+                .userId(user.getId())
+                .username(user.getUsername())
+                .email(user.getEmail())
+                .role(user.getRole())
+                .expiresIn(jwtUtils.getExpirationMs())
+                .build();
+    }
+
+    @Override
+    @Transactional
+    public void logout(RefreshTokenRequest request) {
+        refreshTokenService.revokeToken(request.getRefreshToken());
+        log.info("Refresh token revoked (logout).");
     }
 
     @Override
@@ -115,6 +149,10 @@ public class AuthServiceImpl implements AuthService {
 
         user.setPassword(passwordEncoder.encode(request.getNewPassword()));
         userRepository.save(user);
+
+        // A refresh token issued before this change shouldn't survive it.
+        refreshTokenService.revokeAllUserTokens(user);
+
         log.info("Password changed for user: {}", user.getEmail());
     }
 
