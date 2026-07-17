@@ -6,18 +6,17 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDateTime;
+
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class AuthResponse {
+public class RegisterResponse {
 
-    private String token;
-    @Builder.Default
-    private String type = "Bearer";
     private Long userId;
     private String username;
     private String email;
     private Role role;
-    private long expiresIn; // in milliseconds
+    private LocalDateTime createdAt;
 }

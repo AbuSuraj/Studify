@@ -5,12 +5,10 @@ import com.edutech.studify.dto.request.LoginRequest;
 import com.edutech.studify.dto.request.RegisterRequest;
 import com.edutech.studify.dto.response.ApiResponse;
 import com.edutech.studify.dto.response.AuthResponse;
+import com.edutech.studify.dto.response.RegisterResponse;
 import com.edutech.studify.dto.response.UserResponse;
 import com.edutech.studify.service.AuthService;
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.media.Schema;
-import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -27,58 +25,20 @@ public class AuthController {
 
     private final AuthService authService;
 
-    /**
-     * Register a new user
-     */
     @PostMapping("/register")
-    @Operation(
-            summary = "Register new user",
-            description = "Create a new user account with role (ADMIN, TEACHER, STUDENT). Returns JWT token."
-    )
-    @ApiResponses(value = {
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(
-                    responseCode = "201",
-                    description = "User registered successfully",
-                    content = @Content(schema = @Schema(implementation = AuthResponse.class))
-            ),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(
-                    responseCode = "400",
-                    description = "Invalid input data"
-            ),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(
-                    responseCode = "409",
-                    description = "Username or email already exists"
-            )
-    })
-    public ResponseEntity<ApiResponse<AuthResponse>> register(
+    @Operation(summary = "Register new user")
+    public ResponseEntity<ApiResponse<RegisterResponse>> register(
             @Valid @RequestBody RegisterRequest request) {
 
-        AuthResponse response = authService.register(request);
+        RegisterResponse response = authService.register(request);
 
         return ResponseEntity
                 .status(HttpStatus.CREATED)
                 .body(ApiResponse.success(response, "User registered successfully"));
     }
 
-    /**
-     * Login user
-     */
     @PostMapping("/login")
-    @Operation(
-            summary = "Login user",
-            description = "Authenticate user with username and password. Returns JWT token valid for 24 hours."
-    )
-    @ApiResponses(value = {
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(
-                    responseCode = "200",
-                    description = "Login successful",
-                    content = @Content(schema = @Schema(implementation = AuthResponse.class))
-            ),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(
-                    responseCode = "401",
-                    description = "Invalid username or password"
-            )
-    })
+    @Operation(summary = "Login user")
     public ResponseEntity<ApiResponse<AuthResponse>> login(
             @Valid @RequestBody LoginRequest request) {
 
@@ -87,85 +47,28 @@ public class AuthController {
         return ResponseEntity.ok(ApiResponse.success(response, "Login successful"));
     }
 
-    /**
-     * Get current user profile
-     */
     @GetMapping("/me")
     @SecurityRequirement(name = "bearerAuth")
-    @Operation(
-            summary = "Get current user profile",
-            description = "Get complete profile of authenticated user including role-specific information (student/teacher details)"
-    )
-    @ApiResponses(value = {
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(
-                    responseCode = "200",
-                    description = "User profile retrieved successfully",
-                    content = @Content(schema = @Schema(implementation = UserResponse.class))
-            ),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(
-                    responseCode = "401",
-                    description = "Unauthorized - Token missing or invalid"
-            )
-    })
+    @Operation(summary = "Get current user profile")
     public ResponseEntity<ApiResponse<UserResponse>> getCurrentUser() {
-
         UserResponse userResponse = authService.getUserProfile();
         return ResponseEntity.ok(ApiResponse.success(userResponse, "User retrieved successfully"));
     }
 
-    /**
-     * Change password
-     */
     @PutMapping("/change-password")
     @SecurityRequirement(name = "bearerAuth")
-    @Operation(
-            summary = "Change password",
-            description = "Change current user's password. Requires current password for verification."
-    )
-    @ApiResponses(value = {
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(
-                    responseCode = "200",
-                    description = "Password changed successfully"
-            ),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(
-                    responseCode = "400",
-                    description = "Passwords don't match or invalid format"
-            ),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(
-                    responseCode = "401",
-                    description = "Current password is incorrect"
-            )
-    })
+    @Operation(summary = "Change password")
     public ResponseEntity<ApiResponse<String>> changePassword(
             @Valid @RequestBody ChangePasswordRequest request) {
 
         authService.changePassword(request);
-
         return ResponseEntity.ok(ApiResponse.success(null, "Password changed successfully"));
     }
 
-    /**
-     * Logout (client-side token removal)
-     * POST /api/auth/logout
-     * Note: Since we're using stateless JWT, logout is handled client-side
-     * This endpoint is for logging purposes or future token blacklisting
-     */
     @PostMapping("/logout")
     @SecurityRequirement(name = "bearerAuth")
-    @Operation(
-            summary = "Logout user",
-            description = "Logout user. Client should remove the JWT token. This endpoint is for logging purposes."
-    )
-    @ApiResponses(value = {
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(
-                    responseCode = "200",
-                    description = "Logout successful"
-            )
-    })
+    @Operation(summary = "Logout user")
     public ResponseEntity<ApiResponse<String>> logout() {
-        // For stateless JWT, the client should remove the token
-        // This endpoint can be used for logging or future token blacklisting implementation
-
         return ResponseEntity.ok(ApiResponse.success(null,
                 "Logout successful. Please remove the token from client."));
     }

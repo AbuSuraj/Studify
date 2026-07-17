@@ -8,6 +8,50 @@ import org.springframework.stereotype.Component;
 @Component
 public class DtoMapper {
 
+    // ============= User Profile Mapping =============
+
+    public RegisterResponse toRegisterResponse(User user) {
+        return RegisterResponse.builder()
+                .userId(user.getId())
+                .username(user.getUsername())
+                .email(user.getEmail())
+                .role(user.getRole())
+                .createdAt(user.getCreatedAt())
+                .build();
+    }
+
+    public UserResponse toUserResponse(User user) {
+        UserResponse.UserResponseBuilder builder = UserResponse.builder()
+                .id(user.getId())
+                .username(user.getUsername())
+                .email(user.getEmail())
+                .role(user.getRole())
+                .isActive(user.getIsActive())
+                .createdAt(user.getCreatedAt());
+
+        if (user.getStudent() != null) {
+            builder.studentInfo(UserResponse.StudentInfo.builder()
+                    .studentId(user.getStudent().getId())
+                    .fullName(user.getStudent().getFullName())
+                    .department(user.getStudent().getDepartment() != null ?
+                            user.getStudent().getDepartment().getName() : null)
+                    .status(user.getStudent().getStatus().name())
+                    .build());
+        }
+
+        if (user.getTeacher() != null) {
+            builder.teacherInfo(UserResponse.TeacherInfo.builder()
+                    .teacherId(user.getTeacher().getId())
+                    .fullName(user.getTeacher().getFullName())
+                    .department(user.getTeacher().getDepartment() != null ?
+                            user.getTeacher().getDepartment().getName() : null)
+                    .specialization(user.getTeacher().getSpecialization())
+                    .build());
+        }
+
+        return builder.build();
+    }
+
     // ============= Student Mapping =============
 
     public StudentResponse toStudentResponse(Student student) {
