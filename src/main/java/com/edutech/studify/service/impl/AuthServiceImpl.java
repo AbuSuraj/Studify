@@ -91,7 +91,7 @@ public class AuthServiceImpl implements AuthService {
         User user = userRepository.findByEmail(request.getEmail())
                 .orElseThrow(() -> new InvalidCredentialsException("Invalid email or password"));
 
-        String refreshToken = refreshTokenService.createRefreshToken(user);
+        String refreshToken = refreshTokenService.createRefreshToken(user, request.isTerminateOtherSessions());
 
         log.info("User logged in: {}", user.getEmail());
 
@@ -112,7 +112,7 @@ public class AuthServiceImpl implements AuthService {
         User user = refreshTokenService.validateAndConsume(request.getRefreshToken());
 
         String newAccessToken = jwtUtils.generateTokenFromUsername(user.getEmail());
-        String newRefreshToken = refreshTokenService.createRefreshToken(user);
+        String newRefreshToken = refreshTokenService.createRefreshToken(user,false);
 
         log.info("Access token refreshed for user: {}", user.getEmail());
 

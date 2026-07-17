@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
+import java.util.List;
 import java.util.UUID;
 
 @Slf4j
@@ -25,9 +26,18 @@ public class RefreshTokenServiceImpl implements RefreshTokenService {
     @Value("${app.jwt.refresh-token.expiration-ms}")
     private long refreshTokenExpirationMs;
 
+    @Value("${app.jwt.refresh-token.max-active-sessions:3}")
+    private int maxActiveSessions;
+
     @Override
     @Transactional
-    public String createRefreshToken(User user) {
+    public String createRefreshToken(User user, boolean terminateOtherSessions) {
+        if (terminateOtherSessions) {
+            revokeAllUserTokens(user);
+        } else {
+            enforceSessionLimit(user);
+        }
+
         String rawToken = UUID.randomUUID().toString();
 
         RefreshToken refreshToken = RefreshToken.builder()
@@ -40,6 +50,28 @@ public class RefreshTokenServiceImpl implements RefreshTokenService {
         refreshTokenRepository.save(refreshToken);
 
         return rawToken;
+    }
+
+    /**
+     * Keeps a user at or under maxActiveSessions by revoking their oldest
+     * active session(s) if the new login would push them over the limit.
+     */
+    private void enforceSessionLimit(User user) {
+        List<RefreshToken> activeSessions = refreshTokenRepository.findActiveSessionsByUser(user, Instant.now());
+
+        int sessionsToEvict = activeSessions.size() - maxActiveSessions + 1; // +1 makes room for the incoming login
+        if (sessionsToEvict <= 0) {
+            return;
+        }
+
+        for (int i = 0; i < sessionsToEvict; i++) {
+            RefreshToken oldest = activeSessions.get(i);
+            oldest.setRevoked(true);
+            refreshTokenRepository.save(oldest);
+        }
+
+        log.info("User {} hit the {}-session limit - evicted {} oldest session(s).",
+                user.getEmail(), maxActiveSessions, sessionsToEvict);
     }
 
     @Override
@@ -59,7 +91,6 @@ public class RefreshTokenServiceImpl implements RefreshTokenService {
             throw new TokenRefreshException("Refresh token has expired. Please login again.");
         }
 
-        // Rotation: single-use. Revoke immediately so it can't be replayed.
         storedToken.setRevoked(true);
         refreshTokenRepository.save(storedToken);
 

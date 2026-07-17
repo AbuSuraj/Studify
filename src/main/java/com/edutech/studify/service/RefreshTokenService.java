@@ -6,20 +6,20 @@ public interface RefreshTokenService {
 
     /**
      * Creates and persists a new refresh token for the given user.
+     *
+     * @param terminateOtherSessions if true, every other existing session for
+     *                               this user is revoked first (single-session
+     *                               login). If false, other sessions are left
+     *                               alone unless the max-concurrent-session
+     *                               limit is reached, in which case the oldest
+     *                               session is evicted to make room.
      * @return the raw (unhashed) token to hand back to the client
      */
-    String createRefreshToken(User user);
+    String createRefreshToken(User user, boolean terminateOtherSessions);
 
-    /**
-     * Validates a raw refresh token (must exist, not be revoked, not be
-     * expired) and atomically revokes it - each refresh token is single-use.
-     * @return the user the token belonged to
-     */
     User validateAndConsume(String rawToken);
 
-    /** Revokes a single refresh token (used for logout). */
     void revokeToken(String rawToken);
 
-    /** Revokes every refresh token belonging to a user. */
     void revokeAllUserTokens(User user);
 }
