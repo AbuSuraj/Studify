@@ -52,14 +52,10 @@ public class RefreshTokenServiceImpl implements RefreshTokenService {
         return rawToken;
     }
 
-    /**
-     * Keeps a user at or under maxActiveSessions by revoking their oldest
-     * active session(s) if the new login would push them over the limit.
-     */
     private void enforceSessionLimit(User user) {
         List<RefreshToken> activeSessions = refreshTokenRepository.findActiveSessionsByUser(user, Instant.now());
 
-        int sessionsToEvict = activeSessions.size() - maxActiveSessions + 1; // +1 makes room for the incoming login
+        int sessionsToEvict = activeSessions.size() - maxActiveSessions + 1;
         if (sessionsToEvict <= 0) {
             return;
         }
@@ -75,7 +71,7 @@ public class RefreshTokenServiceImpl implements RefreshTokenService {
     }
 
     @Override
-    @Transactional
+    @Transactional(noRollbackFor = TokenRefreshException.class)
     public User validateAndConsume(String rawToken) {
         String tokenHash = TokenHashUtils.sha256(rawToken);
 
@@ -83,7 +79,16 @@ public class RefreshTokenServiceImpl implements RefreshTokenService {
                 .orElseThrow(() -> new TokenRefreshException("Refresh token not recognized. Please login again."));
 
         if (storedToken.isRevoked()) {
-            throw new TokenRefreshException("Refresh token has been revoked. Please login again.");
+            // Reuse of an already-revoked token: either a client bug, or an
+            // attacker replaying a stolen token after the real user already
+            // rotated past it. We can't tell those apart, so we fail safe -
+            // nuke every session for this user and force a fresh login
+            // everywhere, rather than just rejecting this one request.
+            User user = storedToken.getUser();
+            log.error("SECURITY: Reused refresh token detected for user {}. Revoking all sessions.", user.getEmail());
+            revokeAllUserTokens(user);
+            throw new TokenRefreshException(
+                    "This refresh token has already been used. All sessions have been logged out for your security. Please login again.");
         }
 
         if (storedToken.getExpiryDate().isBefore(Instant.now())) {
@@ -113,5 +118,12 @@ public class RefreshTokenServiceImpl implements RefreshTokenService {
     public void revokeAllUserTokens(User user) {
         refreshTokenRepository.deleteByUser(user);
         log.info("All refresh tokens revoked for user: {}", user.getEmail());
+    }
+
+    @Override
+    @Transactional
+    public void purgeStaleTokens() {
+        int deleted = refreshTokenRepository.deleteStaleTokens(Instant.now());
+        log.info("Refresh token cleanup: removed {} stale token(s).", deleted);
     }
 }
