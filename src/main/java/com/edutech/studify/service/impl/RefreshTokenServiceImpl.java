@@ -116,8 +116,9 @@ public class RefreshTokenServiceImpl implements RefreshTokenService {
     @Override
     @Transactional
     public void revokeAllUserTokens(User user) {
-        refreshTokenRepository.deleteByUser(user);
-        log.info("All refresh tokens revoked for user: {}", user.getEmail());
+        int deletedCount = refreshTokenRepository.deleteByUser(user);
+        log.info("Revoked {} refresh token(s) for user: {}", deletedCount, user.getEmail());
+
     }
 
     @Override

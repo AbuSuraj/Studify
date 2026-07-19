@@ -10,10 +10,7 @@ import com.edutech.studify.dto.response.UserResponse;
 import com.edutech.studify.dto.util.DtoMapper;
 import com.edutech.studify.entity.Role;
 import com.edutech.studify.entity.User;
-import com.edutech.studify.exception.BadRequestException;
-import com.edutech.studify.exception.DuplicateResourceException;
-import com.edutech.studify.exception.ForbiddenException;
-import com.edutech.studify.exception.InvalidCredentialsException;
+import com.edutech.studify.exception.*;
 import com.edutech.studify.repository.UserRepository;
 import com.edutech.studify.security.JwtUtils;
 import com.edutech.studify.service.AuthService;
@@ -107,7 +104,7 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    @Transactional
+    @Transactional(noRollbackFor = TokenRefreshException.class)
     public AuthResponse refreshToken(RefreshTokenRequest request) {
         User user = refreshTokenService.validateAndConsume(request.getRefreshToken());
 
