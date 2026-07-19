@@ -5,10 +5,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-/**
- * Optional: For refresh token implementation
- * You can implement this later if needed
- */
+ 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
